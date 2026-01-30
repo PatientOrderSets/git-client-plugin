@@ -152,6 +152,7 @@ public class CliGitAPIImpl extends LegacyCompatibleGitAPIImpl {
     static final String SPARSE_CHECKOUT_FILE_PATH = ".git/info/sparse-checkout";
     static final String TIMEOUT_LOG_PREFIX = " # timeout=";
     private static final String INDEX_LOCK_FILE_PATH = ".git" + File.separator + "index.lock";
+    private static final String API_TOKEN_PREFIX = "API_TOKEN/";
     transient Launcher launcher;
     TaskListener listener;
     String gitExe;
@@ -1841,15 +1842,24 @@ public class CliGitAPIImpl extends LegacyCompatibleGitAPIImpl {
     }
 
     private File createWindowsStandardAskpass(StandardUsernamePasswordCredentials creds) throws IOException {
-        return createWindowsBatFile(creds.getUsername(), Secret.toString(creds.getPassword()));
+        String username = creds.getUsername();
+        if (username.startsWith(API_TOKEN_PREFIX)) {
+            username = "x-bitbucket-api-token-auth";
+        }
+        return createWindowsBatFile(username, Secret.toString(creds.getPassword()));
     }
 
     private File createUnixStandardAskpass(StandardUsernamePasswordCredentials creds) throws IOException {
         File askpass = createTempFile("pass", ".sh");
         try (PrintWriter w = new PrintWriter(askpass, Charset.defaultCharset().toString())) {
+            String username = creds.getUsername();
+            if (username.startsWith(API_TOKEN_PREFIX)) {
+                username = "x-bitbucket-api-token-auth";
+            }
+
             w.println("#!/bin/sh");
             w.println("case \"$1\" in");
-            w.println("Username*) echo '" + quoteUnixCredentials(creds.getUsername()) + "' ;;");
+            w.println("Username*) echo '" + quoteUnixCredentials(username) + "' ;;");
             w.println("Password*) echo '" + quoteUnixCredentials(Secret.toString(creds.getPassword())) + "' ;;");
             w.println("esac");
         }
