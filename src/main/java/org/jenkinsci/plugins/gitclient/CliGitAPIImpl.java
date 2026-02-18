@@ -153,6 +153,7 @@ public class CliGitAPIImpl extends LegacyCompatibleGitAPIImpl {
     static final String TIMEOUT_LOG_PREFIX = " # timeout=";
     private static final String INDEX_LOCK_FILE_PATH = ".git" + File.separator + "index.lock";
     private static final String API_TOKEN_PREFIX = "API_TOKEN/";
+    private static final String ACCESS_TOKEN_USERNAME = "x-token-auth";
     transient Launcher launcher;
     TaskListener listener;
     String gitExe;
@@ -1845,6 +1846,8 @@ public class CliGitAPIImpl extends LegacyCompatibleGitAPIImpl {
         String username = creds.getUsername();
         if (username.startsWith(API_TOKEN_PREFIX)) {
             username = "x-bitbucket-api-token-auth";
+        } else if (ACCESS_TOKEN_USERNAME.equals(username)) {
+            username = ACCESS_TOKEN_USERNAME;
         }
         return createWindowsBatFile(username, Secret.toString(creds.getPassword()));
     }
@@ -1855,6 +1858,8 @@ public class CliGitAPIImpl extends LegacyCompatibleGitAPIImpl {
             String username = creds.getUsername();
             if (username.startsWith(API_TOKEN_PREFIX)) {
                 username = "x-bitbucket-api-token-auth";
+            } else if (ACCESS_TOKEN_USERNAME.equals(username)) {
+                username = ACCESS_TOKEN_USERNAME;
             }
 
             w.println("#!/bin/sh");
